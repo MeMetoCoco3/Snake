@@ -18,6 +18,7 @@ type Player struct {
 	Direction     rl.Vector2
 	NextDirection rl.Vector2
 	Body          []rl.Vector2
+	Frame         float32
 }
 
 // Position refers to position on matrix
@@ -27,8 +28,12 @@ type Candy struct {
 }
 
 var (
-	PLAYERCOLOR = rl.Color{79, 119, 45, 255}
-	Directions  = []rl.Vector2{
+	PLAYERCOLOR     = rl.Color{6, 214, 160, 255}
+	GRIDCOLOR       = rl.Color{7, 59, 76, 80}
+	BORDERCOLOR     = rl.Color{7, 59, 76, 255}
+	CANDYCOLOR      = rl.Color{239, 45, 94, 255}
+	BACKGROUNDCOLOR = rl.Color{255, 209, 102, 255}
+	Directions      = []rl.Vector2{
 		{0, -1},
 		{1, 0},
 		{0, 1},
@@ -71,15 +76,43 @@ func main() {
 		}
 
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
-		DrawRectangleLinesRec(BorderBox, rl.Red)
+		rl.ClearBackground(BACKGROUNDCOLOR)
+		DrawRectangleLinesRec(BorderBox, BORDERCOLOR)
+		for i := 0; i < SCREENHEIGHT; i = i + RECTSIZE {
+			rl.DrawLine(int32(i), 0, int32(i), SCREENHEIGHT, GRIDCOLOR)
+			rl.DrawLine(0, int32(i), SCREENWIDTH, int32(i), GRIDCOLOR)
+		}
 
 		if !candy.Eaten {
-			rl.DrawRectangle(int32(candy.Position.X), int32(candy.Position.Y), RECTSIZE, RECTSIZE, rl.Red)
+			rl.DrawRectangle(int32(candy.Position.X), int32(candy.Position.Y), RECTSIZE, RECTSIZE, CANDYCOLOR)
 		}
 		for i := range p.Body {
-			rect := rl.Rectangle{p.Body[i].X, p.Body[i].Y, RECTSIZE, RECTSIZE}
-			rl.DrawRectangleRec(rect, PLAYERCOLOR)
+			if i == 0 {
+				rect := rl.Rectangle{p.Position.X - p.Direction.X, p.Position.Y - p.Direction.Y, RECTSIZE, RECTSIZE}
+				rl.DrawRectangleRec(rect, PLAYERCOLOR)
+			} else {
+				var dx float32
+				var dy float32
+				if p.Body[i].X == p.Body[i-1].X {
+					dx = 0
+					if p.Body[i].Y < p.Body[i-1].Y {
+						dy = 1
+					} else {
+						dy = -1
+					}
+				} else if p.Body[i].X > p.Body[i-1].X {
+					dx = -1
+					dy = 0
+				} else {
+					dx = 1
+					dy = 0
+				}
+				rect := rl.Rectangle{
+					p.Body[i].X + (dx * p.Frame), p.Body[i].Y + (dy * p.Frame),
+					RECTSIZE, RECTSIZE,
+				}
+				rl.DrawRectangleRec(rect, PLAYERCOLOR)
+			}
 		}
 		rl.EndDrawing()
 	}
@@ -101,6 +134,7 @@ func (p *Player) GetInput() {
 }
 
 func (p *Player) UpdatePosition() {
+	p.Frame++
 	if p.Position.X < RECTSIZE/2 || p.Position.X >= SCREENWIDTH-RECTSIZE/2 || p.Position.Y < RECTSIZE/2 || p.Position.Y >= SCREENHEIGHT-RECTSIZE/2 {
 		os.Exit(1)
 	}
@@ -115,7 +149,7 @@ func (p *Player) UpdatePosition() {
 
 	if int(p.Position.X)%RECTSIZE == RECTSIZE/2 &&
 		int(p.Position.Y)%RECTSIZE == RECTSIZE/2 {
-
+		p.Frame = 0
 		if p.NextDirection != p.Direction {
 			p.Direction = p.NextDirection
 		}
