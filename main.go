@@ -90,29 +90,43 @@ func main() {
 			if i == 0 {
 				rect := rl.Rectangle{p.Position.X - p.Direction.X, p.Position.Y - p.Direction.Y, RECTSIZE, RECTSIZE}
 				rl.DrawRectangleRec(rect, PLAYERCOLOR)
-			} else {
-				var dx float32
-				var dy float32
-				if p.Body[i].X == p.Body[i-1].X {
-					dx = 0
-					if p.Body[i].Y < p.Body[i-1].Y {
-						dy = 1
-					} else {
-						dy = -1
-					}
-				} else if p.Body[i].X > p.Body[i-1].X {
-					dx = -1
-					dy = 0
-				} else {
-					dx = 1
-					dy = 0
+				if len(p.Body) == 1 {
+					continue
 				}
-				rect := rl.Rectangle{
-					p.Body[i].X + (dx * p.Frame), p.Body[i].Y + (dy * p.Frame),
+				rect = rl.Rectangle{p.Body[i].X, p.Body[i].Y, RECTSIZE, RECTSIZE}
+				rl.DrawRectangleRec(rect, PLAYERCOLOR)
+				continue
+			}
+			var dx float32
+			var dy float32
+			if p.Body[i].X == p.Body[i-1].X {
+				dx = 0
+				if p.Body[i].Y < p.Body[i-1].Y {
+					dy = 1
+				} else {
+					dy = -1
+				}
+			} else if p.Body[i].X > p.Body[i-1].X {
+				dx = -1
+				dy = 0
+			} else {
+				dx = 1
+				dy = 0
+			}
+			rect := rl.Rectangle{
+				p.Body[i].X + (dx * p.Frame), p.Body[i].Y + (dy * p.Frame),
+				RECTSIZE, RECTSIZE,
+			}
+
+			rl.DrawRectangleRec(rect, PLAYERCOLOR)
+			if i != len(p.Body)-1 {
+				rect = rl.Rectangle{
+					p.Body[i].X, p.Body[i].Y,
 					RECTSIZE, RECTSIZE,
 				}
 				rl.DrawRectangleRec(rect, PLAYERCOLOR)
 			}
+
 		}
 		rl.EndDrawing()
 	}
